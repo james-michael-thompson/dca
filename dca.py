@@ -9,7 +9,7 @@ import pickle
 filename = 'data/T0594.fasta.chkali-5.sto'
 alphabet = '-ARNDCEQGHILKMFPSTWYV'
 id_cutoff = 0.8
-pseudo_lambda = 5
+pseudo_lambda = 10
 
 # assertions on inputs
 assert( id_cutoff > 0 and id_cutoff <= 0.8 )
@@ -30,24 +30,13 @@ def read_MSA(filename):
 		if len(tokens) == 2 and is_aa_sequence(tokens[1]): MSA.append(tokens[1])
 	return MSA
 
-seq_id_cache = {}
 def pairwise_seq_id(MSA,idx1,idx2):
 	assert( len(MSA[idx1]) == len(MSA[idx1]) )
-
-	if idx1 in seq_id_cache and idx2 in seq_id_cache[idx1]:
-		return seq_id_cache[idx1][idx2]
-
-	if idx1 not in seq_id_cache:
-		seq_id_cache[idx1] = {}
-
 	ident = 0
 	for idx in xrange(0,len(MSA[idx1])):
 		if MSA[idx1][idx] == MSA[idx2][idx]:
 			ident += 1
-	#return float(ident) / len(MSA[idx1])
-	seq_id_cache[idx1][idx2] = float(ident) / len(MSA[idx1])
-
-	return seq_id_cache[idx1][idx2]
+	return float(ident) / len(MSA[idx1])
 
 def calc_seq_weights(MSA,seq_idx):
 	N = 0
@@ -80,7 +69,7 @@ def norm_freq(symbol,pos,MSA,weights,lam,alphabet_size):
 	for seq_idx in xrange(len(MSA)):
 		if MSA[seq_idx][pos] == symbol:
 			total += weights[seq_idx]
-	return 1/(lam+MEff) * total
+	return 1/(lam+Meff) * total
 
 def norm_pair_freq(sym1,pos1,sym2,pos2,MSA,weights,lam,alphabet_size):
 	Meff  = sum(weights)
@@ -89,7 +78,7 @@ def norm_pair_freq(sym1,pos1,sym2,pos2,MSA,weights,lam,alphabet_size):
 		for seq_idx2 in xrange(len(MSA)):
 			if MSA[seq_idx1][pos2] == sym1 and MSA[seq_idx2][pos2] == sym2:
 				total += weights[seq_idx]
-	return 1/(lam+MEff) * total
+	return 1/(lam+Meff) * total
 
 # read in the MSA (matrix A from equation 1 Morcos et al, 2011)
 MSA = read_MSA(filename)
@@ -98,12 +87,10 @@ MSA = read_MSA(filename)
 weights = []
 weights_fn = 'seq.weights'
 if os.path.exists(weights_fn):
-	weights = pickle.load(weights_fn)
+	weights = pickle.load(open(weights_fn,'r'))
 else:
 	weights = calc_seq_weights(MSA)
 	pickle.dump(weights,open(weights_fn,'w'))
 
-print norm_freq('A',1,MSA,weights,pseudo_lambda,len(alphabet))
-print norm_freq('T',1,MSA,weights,pseudo_lambda,len(alphabet))
-
-
+print norm_freq('A',20,MSA,weights,pseudo_lambda,len(alphabet))
+print norm_freq('T',20,MSA,weights,pseudo_lambda,len(alphabet))
