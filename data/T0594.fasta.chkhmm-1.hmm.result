@@ -1,0 +1,69 @@
+# hmmsearch :: search profile(s) against a sequence database
+# HMMER 3.0 (March 2010); http://hmmer.org/
+# Copyright (C) 2010 Howard Hughes Medical Institute.
+# Freely distributed under the GNU General Public License (GPLv3).
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# query HMM file:                  T0594.fasta.chkhmm-1.hmm
+# target sequence database:        /work/tex/db/db.fasta
+# sequence reporting threshold:    E-value <= 0.1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Query:       T0594  [M=140]
+Scores for complete sequences (score includes all domains):
+   --- full sequence ---   --- best 1 domain ---    -#dom-
+    E-value  score  bias    E-value  score  bias    exp  N  Sequence Description
+    ------- ------ -----    ------- ------ -----   ---- --  -------- -----------
+    1.9e-95  319.0   0.0    2.1e-95  318.8   0.0    1.0  1  3ni8     
+    3.3e-16   61.6   0.1    4.1e-16   61.3   0.1    1.1  1  1x53     
+
+
+Domain annotation for each sequence (and alignments):
+>> 3ni8  
+   #    score  bias  c-Evalue  i-Evalue hmmfrom  hmm to    alifrom  ali to    envfrom  env to     acc
+ ---   ------ ----- --------- --------- ------- -------    ------- -------    ------- -------    ----
+   1 !  318.8   0.0  5.4e-100   2.1e-95       1     140 []       1     140 []       1     140 [] 1.00
+
+  Alignments for each domain:
+  == domain 1    score: 318.8 bits;  conditional E-value: 5.4e-100
+  T0594   1 glsfeiteeyyvppevlfnaftdaytltrlsrgslaevdlkvggkfslfsgsilgefteitkphkivekwkfrdwnecdystvtvefisvkenhtklklthnni 104
+            g+sfeiteeyyvppevlfnaftdaytltrlsrgslaevdlkvggkfslfsgsilgefteitkphkivekwkfrdwnecdystvtvefisvkenhtklklthnni
+   3ni8   1 GMSFEITEEYYVPPEVLFNAFTDAYTLTRLSRGSLAEVDLKVGGKFSLFSGSILGEFTEITKPHKIVEKWKFRDWNECDYSTVTVEFISVKENHTKLKLTHNNI 104
+            8******************************************************************************************************* PP
+
+  T0594 105 pasnkyneggvlerckngwtqnflhnievilgypkk 140
+            pasnkyneggvlerckngwtqnflhnievilgypkk
+   3ni8 105 PASNKYNEGGVLERCKNGWTQNFLHNIEVILGYPKK 140
+            **********************************98 PP
+
+>> 1x53  
+   #    score  bias  c-Evalue  i-Evalue hmmfrom  hmm to    alifrom  ali to    envfrom  env to     acc
+ ---   ------ ----- --------- --------- ------- -------    ------- -------    ------- -------    ----
+   1 !   61.3   0.1   1.1e-20   4.1e-16       6     137 ..      15     137 ..      10     140 .. 0.89
+
+  Alignments for each domain:
+  == domain 1    score: 61.3 bits;  conditional E-value: 1.1e-20
+  T0594   6 iteeyyvppevlfnaftdaytltrlsrgslaevdlkvggkfslfsgsilgefteitkphkivekwkfrdwnecdystvtvefisvkenhtklklthnnipasnk 109
+            + e +   pe l++ ft      +    + a ++   ggkf + +g++ geft++     iv kw+f+ w e  ++t+t+ fi+ k + t l +  ++ipa   
+   1x53  15 LKETFLTSPEELYRVFTTQEL-VQAFTHAPATLEADRGGKFHMVDGNVSGEFTDLVPEKHIVMKWRFKSWPEGHFATITLTFID-KNGETELCMEGRGIPAPEE 116
+            56788999*********8765.555556778899999******************99999***********************7.8899************864 PP
+
+  T0594 110 yneggvlerckngwtqnflhnievilgy 137
+                   er ++gw + ++ +i+  +gy
+   1x53 117 -------ERTRQGWQRYYFEGIKQTFGY 137
+            .......899************999999 PP
+
+
+
+Internal pipeline statistics summary:
+-------------------------------------
+Query model(s):                            1  (140 nodes)
+Target sequences:                      77634  (19821592 residues)
+Passed MSV filter:                      1470  (0.018935); expected 1552.7 (0.02)
+Passed bias filter:                     1470  (0.018935); expected 1552.7 (0.02)
+Passed Vit filter:                       175  (0.00225417); expected 77.6 (0.001)
+Passed Fwd filter:                         4  (5.15238e-05); expected 0.8 (1e-05)
+Initial search space (Z):              77634  [actual number of targets]
+Domain search space  (domZ):               2  [number of targets reported over threshold]
+# CPU time: 0.92u 0.03s 00:00:00.95 Elapsed: 00:00:00.35
+# Mc/sec: 7928.64
+//
