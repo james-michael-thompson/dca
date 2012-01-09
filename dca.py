@@ -48,9 +48,7 @@ def calc_seq_weights(MSA,seq_idx):
 
 def calc_seq_weights(MSA):
 	nrow = len(MSA)
-
 	M = [ 0 for i in xrange(nrow) ]
-
 	for i in xrange(nrow):
 		for j in xrange(i,nrow): # intentionally calculate numbers for diagonal
 			if i == j:
@@ -60,25 +58,30 @@ def calc_seq_weights(MSA):
 				if N_ident > id_cutoff:
 					M[i] += 1
 					M[j] += 1
-
 	return [ (1.0/M[i]) for i in xrange(nrow) ]
 
-def norm_freq(symbol,pos,MSA,weights,lam,alphabet_size):
+def norm_freq(sym,pos,MSA,weights,lam,alphabet_size):
 	Meff  = sum(weights)
 	total = lam/alphabet_size
 	for seq_idx in xrange(len(MSA)):
-		if MSA[seq_idx][pos] == symbol:
+		if MSA[seq_idx][pos] == sym:
 			total += weights[seq_idx]
-	return 1/(lam+Meff) * total
+	# from the text this should be:
+	# 1/(lam+Meff) * total
+	# but that never gives probabilities that sum to 1
+	return 1/Meff * total
 
 def norm_pair_freq(sym1,pos1,sym2,pos2,MSA,weights,lam,alphabet_size):
 	Meff  = sum(weights)
-	total = lam/alphabet_size
+	total = lam/(alphabet_size**2)
 	for seq_idx1 in xrange(len(MSA)):
 		for seq_idx2 in xrange(len(MSA)):
 			if MSA[seq_idx1][pos2] == sym1 and MSA[seq_idx2][pos2] == sym2:
 				total += weights[seq_idx]
-	return 1/(lam+Meff) * total
+	# from the text this should be:
+	# 1/(lam+Meff) * total
+	# but that never gives probabilities that sum to 1
+	return 1/Meff * total
 
 # read in the MSA (matrix A from equation 1 Morcos et al, 2011)
 MSA = read_MSA(filename)
@@ -92,5 +95,7 @@ else:
 	weights = calc_seq_weights(MSA)
 	pickle.dump(weights,open(weights_fn,'w'))
 
-print norm_freq('A',20,MSA,weights,pseudo_lambda,len(alphabet))
-print norm_freq('T',20,MSA,weights,pseudo_lambda,len(alphabet))
+# parameters for the model (two-body = e, one-body = h)
+e = [ [ 0 for i in xrange(len(MSA)) ] for j in xrange(len(MSA)) ]
+h = [ 0 for i in xrange(len(MSA)) ]
+
