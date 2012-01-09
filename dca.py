@@ -3,13 +3,15 @@
 import os
 import re
 import sys
+import math
 import pickle
 
 # free parameters
 filename = 'data/T0594.fasta.chkali-5.sto'
 alphabet = '-ARNDCEQGHILKMFPSTWYV'
 id_cutoff = 0.8
-pseudo_lambda = 10
+# lambda value for pseudo-counting, optimally set to Meff in paper
+pseudo_lambda = 443
 
 # assertions on inputs
 assert( id_cutoff > 0 and id_cutoff <= 0.8 )
@@ -74,14 +76,25 @@ def norm_freq(sym,pos,MSA,weights,lam,alphabet_size):
 def norm_pair_freq(sym1,pos1,sym2,pos2,MSA,weights,lam,alphabet_size):
 	Meff  = sum(weights)
 	total = lam/(alphabet_size**2)
-	for seq_idx1 in xrange(len(MSA)):
-		for seq_idx2 in xrange(len(MSA)):
-			if MSA[seq_idx1][pos2] == sym1 and MSA[seq_idx2][pos2] == sym2:
-				total += weights[seq_idx]
+	for seq_idx in xrange(len(MSA)):
+		if MSA[seq_idx][pos2] == sym1 and MSA[seq_idx][pos2] == sym2:
+			total += 2*weights[seq_idx]
 	# from the text this should be:
 	# 1/(lam+Meff) * total
 	# but that never gives probabilities that sum to 1
 	return 1/Meff * total
+
+def calc_mi(pos1,pos2,MSA,weights,lam):
+	mi = 0
+	for sym1 in alphabet:
+		for sym2 in alphabet:
+			f1 = norm_freq(sym1,pos1,MSA,weights,lam,len(alphabet))
+			f2 = norm_freq(sym2,pos2,MSA,weights,lam,len(alphabet))
+			f12_obs = norm_pair_freq(sym1,pos1,sym2,pos2,MSA,weights,lam,len(alphabet))
+			if f12_obs != 0:
+				#print '(%s,%d,%s,%d,%f,%f,%f)' % (sym1,pos1,sym2,pos2,f1,f2,f12_obs)
+				mi += f12_obs * math.log(f12_obs/(f1*f2))
+	return mi
 
 # read in the MSA (matrix A from equation 1 Morcos et al, 2011)
 MSA = read_MSA(filename)
@@ -95,7 +108,15 @@ else:
 	weights = calc_seq_weights(MSA)
 	pickle.dump(weights,open(weights_fn,'w'))
 
-# parameters for the model (two-body = e, one-body = h)
-e = [ [ 0 for i in xrange(len(MSA)) ] for j in xrange(len(MSA)) ]
-h = [ 0 for i in xrange(len(MSA)) ]
+#mi_values = [ [calc_mi(resi,resj,MSA,weights,pseudo_lambda) for resi in xrange(len(MSA)) ] for resj in xrange(len(MSA)) ]
+mi_values = [ [0 for resi in xrange(len(MSA)) ] for resj in xrange(len(MSA)) ]
+n_cols = len(MSA[0])
+for resi in xrange(n_cols):
+	for resj in xrange(resi+1,n_cols):
+		mi_values[resi][resj] = calc_mi(resi,resj,MSA,weights,pseudo_lambda)
+		print '%d %d %f' % (resi,resj,mi_values[resi][resj])
 
+# calculate the invertible matrix C
+# C[i][j][A][B] = norm_pair_freq(A,i,B,j,...) - (norm_freq(A,i) * norm_freq(B,j))
+# it's important to note that C is a (q-1)*L x (q-1)*L matrix, so the dual
+# indices (A,i) and (B,j) must be combined into a single index.
