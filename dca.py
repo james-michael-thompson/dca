@@ -62,16 +62,20 @@ def calc_seq_weights(MSA):
 					M[j] += 1
 	return [ (1.0/M[i]) for i in xrange(nrow) ]
 
+nf_cache = {}
 def norm_freq(sym,pos,MSA,weights,lam,alphabet_size):
-	Meff  = sum(weights)
-	total = lam/alphabet_size
-	for seq_idx in xrange(len(MSA)):
-		if MSA[seq_idx][pos] == sym:
-			total += weights[seq_idx]
-	# from the text this should be:
-	# 1/(lam+Meff) * total
-	# but that never gives probabilities that sum to 1
-	return 1/Meff * total
+	if not sym in nf_cache:
+		nf_cache[sym] = {}
+	if not pos in nf_cache[sym]:
+		Meff  = sum(weights)
+		total = lam/alphabet_size
+
+		for seq_idx in xrange(len(MSA)):
+			if MSA[seq_idx][pos] == sym:
+				total += weights[seq_idx]
+		nf_cache[sym][pos] = 1/(lam+Meff) * total
+
+	return nf_cache[sym][pos]
 
 def norm_pair_freq(sym1,pos1,sym2,pos2,MSA,weights,lam,alphabet_size):
 	Meff  = sum(weights)
@@ -79,10 +83,7 @@ def norm_pair_freq(sym1,pos1,sym2,pos2,MSA,weights,lam,alphabet_size):
 	for seq_idx in xrange(len(MSA)):
 		if MSA[seq_idx][pos2] == sym1 and MSA[seq_idx][pos2] == sym2:
 			total += 2*weights[seq_idx]
-	# from the text this should be:
-	# 1/(lam+Meff) * total
-	# but that never gives probabilities that sum to 1
-	return 1/Meff * total
+	return 1/(lam+Meff) * total
 
 def calc_mi(pos1,pos2,MSA,weights,lam):
 	mi = 0
@@ -91,9 +92,8 @@ def calc_mi(pos1,pos2,MSA,weights,lam):
 			f1 = norm_freq(sym1,pos1,MSA,weights,lam,len(alphabet))
 			f2 = norm_freq(sym2,pos2,MSA,weights,lam,len(alphabet))
 			f12_obs = norm_pair_freq(sym1,pos1,sym2,pos2,MSA,weights,lam,len(alphabet))
-			if f12_obs != 0:
 				#print '(%s,%d,%s,%d,%f,%f,%f)' % (sym1,pos1,sym2,pos2,f1,f2,f12_obs)
-				mi += f12_obs * math.log(f12_obs/(f1*f2))
+			mi += f12_obs * math.log(f12_obs/(f1*f2))
 	return mi
 
 # read in the MSA (matrix A from equation 1 Morcos et al, 2011)
@@ -108,9 +108,16 @@ else:
 	weights = calc_seq_weights(MSA)
 	pickle.dump(weights,open(weights_fn,'w'))
 
-#mi_values = [ [calc_mi(resi,resj,MSA,weights,pseudo_lambda) for resi in xrange(len(MSA)) ] for resj in xrange(len(MSA)) ]
+tot = 0
+for sym in alphabet:
+	f = norm_freq(sym,1,MSA,weights,pseudo_lambda,len(alphabet))
+	tot += f
+	print 'f(%s) = %f' % (sym,f)
+print 'tot = %f' % tot
+
 mi_values = [ [0 for resi in xrange(len(MSA)) ] for resj in xrange(len(MSA)) ]
 n_cols = len(MSA[0])
+#n_cols = 10
 for resi in xrange(n_cols):
 	for resj in xrange(resi+1,n_cols):
 		mi_values[resi][resj] = calc_mi(resi,resj,MSA,weights,pseudo_lambda)
@@ -120,3 +127,4 @@ for resi in xrange(n_cols):
 # C[i][j][A][B] = norm_pair_freq(A,i,B,j,...) - (norm_freq(A,i) * norm_freq(B,j))
 # it's important to note that C is a (q-1)*L x (q-1)*L matrix, so the dual
 # indices (A,i) and (B,j) must be combined into a single index.
+# eg (for DNA), the matrix C could look like this:
